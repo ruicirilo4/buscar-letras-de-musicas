@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Letra de Música</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            margin: 0;
+        }
+        #app {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+        input, button {
+            margin: 5px 0;
+            display: block;
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 20px; /* Aumentado o padding para melhorar a legibilidade */
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            border-radius: 4px;
+            overflow: auto; /* Adicionado overflow para permitir scroll quando necessário */
+            max-height: 300px; /* Definindo uma altura máxima para evitar que a letra seja muito grande */
+        }
+        #youtube-link {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <h1>Buscar Letra de Música</h1>
+        <label for="titulo">Título da Música:</label>
+        <input type="text" id="titulo" placeholder="Digite o título da música">
+        <br>
+        <label for="artista">Artista:</label>
+        <input type="text" id="artista" placeholder="Digite o nome do artista">
+        <br>
+        <button onclick="buscarLetra()">Buscar Letra</button>
+        <pre id="letra"></pre>
+        <div id="youtube-link"></div>
+    </div>
+
+    <script>
+        async function buscarLetra() {
+            const titulo = document.getElementById('titulo').value.trim();
+            const artista = document.getElementById('artista').value.trim();
+            if (!titulo || !artista) {
+                alert('Por favor, insira tanto o título da música quanto o nome do artista.');
+                return;
+            }
+
+            const url = `https://api.lyrics.ovh/v1/${encodeURIComponent(artista)}/${encodeURIComponent(titulo)}`;
+
+            const letraElement = document.getElementById('letra');
+            letraElement.textContent = 'Buscando...';
+
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`Erro na requisição: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(data); // Log para verificar a resposta da API
+
+                if (data.lyrics) {
+                    const letra = data.lyrics;
+                    letraElement.textContent = letra + '\n\n(Observação: A letra completa pode não estar disponível devido a restrições de direitos autorais.)';
+                    
+                    // Criar link para buscar a música no YouTube
+                    const youtubeLink = document.getElementById('youtube-link');
+                    youtubeLink.innerHTML = `<a href="https://www.youtube.com/results?search_query=${encodeURIComponent(titulo)}+${encodeURIComponent(artista)}" target="_blank">Ver no YouTube</a>`;
+                } else {
+                    letraElement.textContent = 'Letra não encontrada';
+                }
+            } catch (error) {
+                console.error('Erro ao buscar letra:', error);
+                letraElement.textContent = `Erro ao buscar letra: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
